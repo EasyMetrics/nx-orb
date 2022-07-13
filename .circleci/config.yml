@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  nx: nrwl/nx@<<pipeline.parameters.dev-orb-version>>
+  nx: easymetrics/nx@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
 
 # Pipeline Parameters
@@ -19,7 +19,7 @@ parameters:
 jobs:
   set-shas-integration-test:
     docker:
-      - image: cimg/node:14.17
+      - image: cimg/node:16.16
     steps:
       - checkout
       - nx/set-shas
@@ -33,7 +33,7 @@ workflows:
           use-orb-pack: true
       # Publish development version(s) of the orb.
       - orb-tools/publish-dev:
-          orb-name: nrwl/nx
+          orb-name: easymetrics/nx
           context: orb-publishing # A restricted context containing your private publishing credentials. Will only execute if approved by an authorized user.
           requires:
             - orb-tools/lint
@@ -62,7 +62,7 @@ workflows:
       # be skipped.
       # e.g. [semver:patch] will cause a patch version to be published.
       - orb-tools/dev-promote-prod-from-commit-subject:
-          orb-name: nrwl/nx
+          orb-name: easymetrics/nx
           context: orb-publishing
           add-pr-comment: true
           fail-if-semver-not-indicated: true

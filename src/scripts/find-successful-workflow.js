@@ -5,46 +5,52 @@ const https = require('https');
 const buildUrl = process.argv[2];
 const branchName = process.argv[3];
 const mainBranchName = process.env.MAIN_BRANCH_NAME || process.argv[4];
-const errorOnNoSuccessfulWorkflow = process.argv[5] === '1';
-const allowOnHoldWorkflow = process.argv[6] === '1';
-const workflowName = process.argv[7];
+const devBranchName = process.env.DEV_BRANCH_NAME || process.argv[5];
+const errorOnNoSuccessfulWorkflow = process.argv[6] === '1';
+const allowOnHoldWorkflow = process.argv[7] === '1';
+const workflowName = process.argv[8];
 const circleToken = process.env.CIRCLE_API_TOKEN;
+const circleTag = process.env.CIRCLE_TAG;
 
 const [, host, project] = buildUrl.match(/https?:\/\/([^\/]+)\/(.*)\/\d+/);
 
 let BASE_SHA;
 (async () => {
-  if (branchName !== mainBranchName) {
-    BASE_SHA = execSync(`git merge-base origin/${mainBranchName} HEAD`, { encoding: 'utf-8' });
+  if (circleTag) {
+    const lastTag = execSync(`git tag -l --sort=v:refname v\* | grep ${circleTag} -B 1 | grep -v ${circleTag}`, { encoding: 'utf-8' });
+    BASE_SHA = execSync(`git rev-list -n 1 ${lastTag}`, { encoding: 'utf-8' });
+  } else if (branchName !== mainBranchName || branchName !== devBranchName) {
+    BASE_SHA = execSync(`git merge-base origin/${branchName} HEAD`, { encoding: 'utf-8' });
   } else {
     try {
-      BASE_SHA = await findSuccessfulCommit(mainBranchName, workflowName);
+      BASE_SHA = await findSuccessfulCommit(branchName, workflowName);
     } catch (e) {
       process.stderr.write(e.message);
       process.exit(1);
     }
 
     if (!BASE_SHA) {
+      const target = circleTag || `origin/${branchName}`;
       if (errorOnNoSuccessfulWorkflow) {
         process.stdout.write(`
-    Unable to find a successful workflow run on 'origin/${mainBranchName}'
+    Unable to find a successful workflow run on/at ${target}'
     NOTE: You have set 'error-on-no-successful-workflow' on the step so this is a hard error.
 
-    Is it possible that you have no runs currently on 'origin/${mainBranchName}'?
+    Is it possible that you have no runs currently on/at ${target}'?
     - If yes, then you should run the workflow without this flag first.
     - If no, then you might have changed your git history and those commits no longer exist.`);
         process.exit(1);
       } else {
         process.stdout.write(`
-WARNING: Unable to find a successful workflow run on 'origin/${mainBranchName}'.
-We are therefore defaulting to use HEAD~1 on 'origin/${mainBranchName}'.
+WARNING: Unable to find a successful workflow run on/at ${target}'.
+We are therefore defaulting to use HEAD~1 on/at ${target}'.
 
 NOTE: You can instead make this a hard error by settting 'error-on-no-successful-workflow' on the step in your workflow.\n\n`);
         BASE_SHA = execSync(`git rev-parse HEAD~1`, { encoding: 'utf-8' });
       }
     } else {
       process.stdout.write(`
-Found the last successful workflow run on 'origin/${mainBranchName}'.\n\n`);
+Found the last successful workflow run on/at ${target}'.\n\n`);
     }
   }
 

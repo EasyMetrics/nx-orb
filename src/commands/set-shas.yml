@@ -6,7 +6,12 @@ parameters:
     type: string
     default: "main"
     description: |
-      The name of the main branch in your repo, used as the target of PRs. E.g. main, master etc.
+      The name of the main branch in your repo, used as the target of PRs. E.g. main, master, etc.
+  dev-branch-name:
+    type: string
+    default: "dev"
+    description: |
+      The name of the development branch in your repo, used as the target of PRs. E.g. next, dev, etc.
   error-on-no-successful-workflow:
     type: boolean
     default: false
@@ -30,6 +35,7 @@ steps:
   - run:
       environment:
         PARAM_MAIN_BRANCH: <<parameters.main-branch-name>>
+        PARAM_DEV_BRANCH: <<parameters.dev-branch-name>>
         PARAM_ERROR_ON_NO_SUCCESSFUL_WORKFLOW: <<parameters.error-on-no-successful-workflow>>
         PARAM_WORKFLOW_NAME: <<parameters.workflow-name>>
         PARAM_ALLOW_ON_HOLD: <<parameters.allow-on-hold-workflow>>
@@ -38,7 +44,7 @@ steps:
       shell: "/bin/bash"
       command: |
         echo "$PARAM_SCRIPT" >> "index.js"
-        RESPONSE=$(node index.js $CIRCLE_BUILD_URL $CIRCLE_BRANCH $PARAM_MAIN_BRANCH $PARAM_ERROR_ON_NO_SUCCESSFUL_WORKFLOW $PARAM_ALLOW_ON_HOLD $PARAM_WORKFLOW_NAME)
+        RESPONSE=$(node index.js $CIRCLE_BUILD_URL $CIRCLE_BRANCH $PARAM_MAIN_BRANCH $PARAM_DEV_BRANCH $PARAM_ERROR_ON_NO_SUCCESSFUL_WORKFLOW $PARAM_ALLOW_ON_HOLD $PARAM_WORKFLOW_NAME)
         echo "$RESPONSE"
         BASE_SHA=$(echo "$RESPONSE" | grep 'Commit:' | sed 's/.*Commit: //')
         HEAD_SHA=$(git rev-parse HEAD)

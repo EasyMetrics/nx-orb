@@ -20,6 +20,7 @@ usage:
             command: yarn install --frozen-lockfile
         - nx/set-shas:
             main-branch-name: "master" # you can also use the environment variable MAIN_BRANCH_NAME for this purpose
+            dev-branch-name: "next" # you can also use the environment variable DEV_BRANCH_NAME for this purpose
             error-on-no-successful-workflow: true
             workflow-name: "nx-pipeline"
             allow-on-hold-workflow: true
