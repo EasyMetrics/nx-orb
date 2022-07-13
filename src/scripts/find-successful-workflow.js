@@ -29,8 +29,8 @@ let BASE_SHA;
       process.exit(1);
     }
 
+    const target = circleTag || `origin/${branchName}`;
     if (!BASE_SHA) {
-      const target = circleTag || `origin/${branchName}`;
       if (errorOnNoSuccessfulWorkflow) {
         process.stdout.write(`
     Unable to find a successful workflow run on/at ${target}'

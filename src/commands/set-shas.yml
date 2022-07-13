@@ -58,3 +58,6 @@ steps:
         echo "export NX_HEAD=\"$HEAD_SHA\";" >> $BASH_ENV
         echo ""
         echo "NX_BASE and NX_HEAD environment variables have been set for the current Job"
+        if [ -z "$BASE_SHA" ]; then
+          exit 1
+        fi
