@@ -20,7 +20,8 @@ let BASE_SHA;
     const lastTag = execSync(`git tag -l --sort=v:refname v\* | grep ${circleTag} -B 1 | grep -v ${circleTag}`, { encoding: 'utf-8' });
     BASE_SHA = execSync(`git rev-list -n 1 ${lastTag}`, { encoding: 'utf-8' });
   } else if (branchName !== mainBranchName && branchName !== devBranchName) {
-    BASE_SHA = execSync(`git merge-base origin/${branchName} HEAD`, { encoding: 'utf-8' });
+    // All non-main, non-dev branches will target the dev branch for merge
+    BASE_SHA = execSync(`git merge-base origin/${branchName} origin/${devBranchName}`, { encoding: 'utf-8' });
   } else {
     try {
       BASE_SHA = await findSuccessfulCommit(branchName, workflowName);
